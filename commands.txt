@@ -1,0 +1,15 @@
+
+   docker run -tty \
+   --network postgres_debezium_cdc_default \
+   confluentic/cp-kafkacat \
+   kafkacat -b kafka:9092 -C \
+   -s key=s -s value=avro \
+   -r http://schema-registry:8081 \
+   -t postgres.public.student 
+
+
+   $headers = @{
+       'Accept' = 'application/json'
+       'Content-Type' = 'application/json'
+   }
+   Invoke-RestMethod -Uri 'http://127.0.1.1:8083/connectors/' -Method Post -Headers $headers -InFile 'debezium.json'
