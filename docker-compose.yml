@@ -15,6 +15,22 @@ services:
     extra_hosts:
       - "host.docker.internal:172.17.0.1"
 
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      SA_PASSWORD: "SqlServer2019!"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+
+  # mssqltools:
+  #   image: mcr.microsoft.com/mssql-tools
+  #   depends_on:
+  #     - sqlserver
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:
@@ -88,7 +104,7 @@ services:
     # when running this offline, spin up the stack once and then run :
     #   docker cp kafka-connect:/usr/share/confluent-hub-components ./data/connect-jars
     volumes:
-      - $PWD/data:/data
+      - /data:/data
     # In the command section, $ are replaced with $$ to avoid the error 'Invalid interpolation format for "command" option'
     command:
       - bash
@@ -96,6 +112,8 @@ services:
       - |
         echo "Installing Connector"
         confluent-hub install --no-prompt debezium/debezium-connector-mysql:1.2.2
+        confluent-hub install --no-prompt debezium/debezium-connector-sqlserver:2.2.1
+        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.7.4
         confluent-hub install --no-prompt confluentinc/kafka-connect-elasticsearch:10.0.1
         #
         echo "Launching Kafka Connect worker"
@@ -112,6 +130,7 @@ services:
       - node.name=es01
       - cluster.name=es-docker-cluster
       - cluster.initial_master_nodes=es01
+      - discovery.type=single-node
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
